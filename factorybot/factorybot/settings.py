@@ -25,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -147,3 +147,5 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
     'SCHEMA_PATH_PREFIX': '/api/v[0-9]',
 }
+
+TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
