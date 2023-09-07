@@ -44,14 +44,15 @@ async def help_command(update: Update,
 async def bind_chat(update: Update,
                     context: ContextTypes.DEFAULT_TYPE) -> None:
     """Bind chat to user if correct token was sent."""
-    message = 'Oops'
     token = update.message.text
-    print(token)
     try:
-        user = await sync_to_async(User.objects.get)(token=token)
-        user.chat_id = update.message.chat_id
-        user.save()
-        message = 'Токен подтвержден'
+        user = await User.objects.aget(token=token)
+        if user.chat_id:
+            message = 'Токен уже подтвержден'
+        else:
+            user.chat_id = update.message.chat_id
+            await user.asave()
+            message = 'Токен подтвержден'
     except User.DoesNotExist:
         message = ('Неверный токен. '
                    'Получите токен подтверждения и отправьте его в этот чат')

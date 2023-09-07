@@ -1,3 +1,5 @@
+import secrets
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -92,6 +94,18 @@ class UserViewSet(viewsets.GenericViewSet):
                 {'Errors': 'Не удалось авторизовать'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated], url_path='token')
+    def get_token(self, request):
+        """
+        Get token to bind telegram chat
+        """
+        token = secrets.token_hex(10)
+        user = request.user
+        user.token = token
+        user.save()
+        return JsonResponse({'token': token})
+
 
 
 class MessageViewSet(mixins.CreateModelMixin,

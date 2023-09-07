@@ -28,5 +28,5 @@ class MessageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get('request')
         validated_data['author'] = request.user
-        send_message(1587425426, validated_data['body'])
+        send_message(request.user.chat_id, validated_data['body'])
         return super().create(validated_data)
