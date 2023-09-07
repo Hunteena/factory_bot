@@ -1,0 +1,29 @@
+services:
+  api:
+    image: django-api
+    build:
+      context: .
+    volumes:
+      - .:/factorybot
+    ports:
+      - "8000:8000"
+    restart: on-failure
+    command:
+      - bash
+      - -c
+      - |
+        python manage.py makemigrations --noinput
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8000
+
+  bot:
+    image: django-api
+    depends_on:
+      - api
+    volumes_from:
+      - api
+    command:
+      - bash
+      - -c
+      - python telegram_bot.py
+    restart: on-failure

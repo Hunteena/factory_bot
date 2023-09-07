@@ -36,5 +36,8 @@ class MessageSerializer(serializers.ModelSerializer):
             raise ValidationError('You have not bind a telegram chat yet')
 
     def create(self, validated_data):
-        send_message(validated_data['author'].chat_id, validated_data['body'])
+        user = validated_data['author']
+        message = (f"{user.name}, я получил от тебя сообщение:\n"
+                   f"{validated_data['body']}")
+        send_message(user.chat_id, message)
         return super().create(validated_data)

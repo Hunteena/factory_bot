@@ -1,16 +1,14 @@
 import secrets
 
-from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
-from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets, status, generics, mixins
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from api.models import User, Message
-from api.schema import UserLoginSerializer, StatusTrueSerializer
 from api.serializers import UserSerializer, MessageSerializer
 
 
@@ -27,19 +25,8 @@ class UserViewSet(viewsets.GenericViewSet):
     @action(methods=['post'], detail=False)
     def register(self, request):
         """
-        Register user
+        Регистрация пользователя
         """
-        # required_fields = {'username', 'password', 'name'}
-        # absent_required_fields = required_fields.difference(request.data)
-        # if absent_required_fields:
-        #     return JsonResponse(
-        #         {
-        #             'Errors': f"Не указаны необходимые аргументы: "
-        #                       f"{', '.join(absent_required_fields)}"
-        #         },
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
-
         # TODO move validation to serializer
         try:
             validate_password(request.data['password'])
@@ -67,7 +54,7 @@ class UserViewSet(viewsets.GenericViewSet):
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated], url_path='token')
     def get_token(self, request):
         """
-        Get token to bind telegram chat
+        Получение токена для привязки чата Telegram
         """
         user = request.user
         if user.token:
@@ -79,6 +66,11 @@ class UserViewSet(viewsets.GenericViewSet):
         return JsonResponse({'token': token})
 
 
+@extend_schema_view(
+    list=extend_schema(description='Получение списка сообщений, отправленных '
+                                   'текущим пользователем'),
+    create=extend_schema(description='Отправка сообщения в чат Telegram'),
+)
 class MessageViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,
                      viewsets.GenericViewSet):
