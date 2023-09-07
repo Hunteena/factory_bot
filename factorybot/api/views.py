@@ -64,48 +64,19 @@ class UserViewSet(viewsets.GenericViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-    # TODO authorization via my endpoint?
-    @extend_schema(
-        request=UserLoginSerializer,
-        responses={200: StatusTrueSerializer}
-    )
-    @action(methods=['post'], detail=False)
-    def login(self, request):
-        """
-        User authorization
-        """
-        if not {'username', 'password'}.issubset(request.data):
-            return JsonResponse(
-                {'Status': False,
-                 'Errors': 'Не указаны все необходимые аргументы'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        user = authenticate(
-            request,
-            username=request.data['username'],
-            password=request.data['password']
-        )
-
-        if user is not None:
-            return JsonResponse({'Status': True})
-        else:
-            return JsonResponse(
-                {'Errors': 'Не удалось авторизовать'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated], url_path='token')
     def get_token(self, request):
         """
         Get token to bind telegram chat
         """
-        token = secrets.token_hex(10)
         user = request.user
-        user.token = token
-        user.save()
+        if user.token:
+            token = user.token
+        else:
+            token = secrets.token_hex(10)
+            user.token = token
+            user.save()
         return JsonResponse({'token': token})
-
 
 
 class MessageViewSet(mixins.CreateModelMixin,
