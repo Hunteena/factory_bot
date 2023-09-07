@@ -2,9 +2,8 @@ import logging
 import os
 
 import django
-from asgiref.sync import sync_to_async
 from django.conf import settings
-from telegram import Update, ForceReply
+from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, \
     ContextTypes
 
@@ -24,20 +23,16 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-# Define a few command handlers. These usually take the two arguments update and
-# context.
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /start is issued."""
-    user = update.effective_user
-    await update.message.reply_html(
-        rf"Hi {user.mention_html()}!",
-    )
-
-
 async def help_command(update: Update,
                        context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("Help!")
+    await update.message.reply_text(
+        "Для использования бота перейдите в Django API и выполните следующие действия:\n"
+        "1) зарегистрируйтесь,\n"
+        "2) авторизуйтесь,\n"
+        "3) сгенерируйте токен и отправьте в этот чат.\n"
+        "Теперь сообщения, отправленные через Django API, будут пересланы в этот чат"
+    )
 
 
 async def bind_chat(update: Update,
@@ -61,20 +56,15 @@ async def bind_chat(update: Update,
 
 def main() -> None:
     """Start the bot."""
-    # Create the Application and pass it your bot's token.
     application = Application.builder().token(
         settings.TELEGRAM_BOT_TOKEN
     ).build()
 
-    # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-
-    # on non command i.e message - bind_chat the message on Telegram
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, bind_chat))
+        MessageHandler(filters.TEXT & ~filters.COMMAND, bind_chat)
+    )
 
-    # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

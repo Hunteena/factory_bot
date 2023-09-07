@@ -27,29 +27,20 @@ class UserViewSet(viewsets.GenericViewSet):
         """
         Регистрация пользователя
         """
-        # TODO move validation to serializer
-        try:
-            validate_password(request.data['password'])
-        except ValidationError as password_error:
+        user_serializer = self.get_serializer(data=request.data)
+        if user_serializer.is_valid():
+            user = user_serializer.save()
+            user.set_password(request.data['password'])
+            user.save()
             return JsonResponse(
-                {'Errors': {'password': list(password_error)}},
-                status=status.HTTP_400_BAD_REQUEST
+                self.get_serializer(user).data,
+                status=status.HTTP_201_CREATED
             )
         else:
-            user_serializer = self.get_serializer(data=request.data)
-            if user_serializer.is_valid():
-                user = user_serializer.save()
-                user.set_password(request.data['password'])
-                user.save()
-                return JsonResponse(
-                    self.get_serializer(user).data,
-                    status=status.HTTP_201_CREATED
-                )
-            else:
-                return JsonResponse(
-                    {'Errors': user_serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            return JsonResponse(
+                {'Errors': user_serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated], url_path='token')
     def get_token(self, request):

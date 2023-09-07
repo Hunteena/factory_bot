@@ -1,5 +1,6 @@
 from asgiref.sync import async_to_sync
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from telegram import Bot
@@ -7,11 +8,15 @@ from telegram import Bot
 from api.models import Message, User
 
 
-# @extend_schema_serializer(exclude_fields=['address'])
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'password', 'name']
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        validate_password(request.data['password'])
+        return attrs
 
 
 @async_to_sync
@@ -33,7 +38,8 @@ class MessageSerializer(serializers.ModelSerializer):
             attrs['author'] = request.user
             return attrs
         else:
-            raise ValidationError('You have not bind a telegram chat yet')
+            raise ValidationError('Невозможно отправить сообщение: '
+                                  'чат не привязан')
 
     def create(self, validated_data):
         user = validated_data['author']
